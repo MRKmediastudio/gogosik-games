@@ -83,7 +83,7 @@ svg.eq{display:block;width:100%;height:auto;max-height:260px;touch-action:manipu
 @keyframes shake{20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
 
 .talk{display:flex;align-items:flex-end;gap:12px}
-.dragon{width:112px;flex:none}
+.dragon{width:128px;flex:none}
 .bubble{position:relative;background:var(--surface);border:2px solid var(--line);border-radius:var(--r);padding:12px 16px;font-weight:700;font-size:1.05rem;min-height:64px;flex:1;min-width:0;margin-bottom:18px}
 .bubble::before{content:"";position:absolute;left:-11px;bottom:18px;width:18px;height:18px;background:var(--surface);border-left:2px solid var(--line);border-bottom:2px solid var(--line);transform:rotate(45deg)}
 .bubble.win{border-color:var(--good)}.bubble.win::before{border-color:var(--good)}
@@ -104,16 +104,16 @@ svg.eq{display:block;width:100%;height:auto;max-height:260px;touch-action:manipu
 .dot.current{background:var(--ember);border-color:var(--ember);color:#fff}
 .note{color:var(--muted);font-size:.9rem;margin:0}
 
-/* Gogosik */
-.dragon .mouth{display:none}
-.dragon.idle .m-idle,.dragon.think .m-idle,.dragon.happy .m-happy,.dragon.oops .m-oops{display:inline}
-.dragon.think .pupil{transform:translate(1.5px,-2.5px)}
-.dragon.oops .brow{display:inline}
-.dragon .brow{display:none}
-.dragon.happy svg{animation:hop .6s ease-out 2}
-@keyframes hop{40%{transform:translateY(-12px)}}
-.dragon .wing{transform-origin:40px 70px;animation:flap 3s ease-in-out infinite}
-@keyframes flap{50%{transform:rotate(-8deg)}}
+/* Gogosik: real character art, one pose per mood */
+.dragon{display:grid;align-self:flex-end}
+.dragon .g{grid-area:1/1;width:100%;height:auto;opacity:0;transform:scale(.96);transition:opacity .18s,transform .18s;filter:drop-shadow(0 6px 8px rgba(0,0,0,.18))}
+.dragon.idle .g-idle,.dragon.think .g-think,.dragon.oops .g-oops,.dragon.happy .g-happy{opacity:1;transform:none}
+.dragon.idle .g-idle{animation:bob 3.2s ease-in-out infinite}
+.dragon.happy .g-happy{animation:hop .6s ease-out 2}
+.dragon.oops .g-oops{animation:wobble .5s ease-in-out}
+@keyframes bob{50%{transform:translateY(-4px)}}
+@keyframes hop{40%{transform:translateY(-14px)}}
+@keyframes wobble{25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
 .head-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .install{font:800 .9rem var(--f-display);border:2px solid var(--ember);background:var(--ember);color:#fff;border-radius:999px;padding:8px 16px;min-height:40px;cursor:pointer}
 .install:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -121,7 +121,7 @@ svg.eq{display:block;width:100%;height:auto;max-height:260px;touch-action:manipu
 .foot{text-align:center;color:var(--muted);font-size:.9rem}.foot a{color:var(--accent);font-weight:800}
 @media (display-mode:standalone){.foot a[href="../"]{display:none}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-@media (max-width:460px){.dragon{width:84px}.bubble{font-size:1rem}}
+@media (max-width:460px){.dragon{width:100px}.bubble{font-size:1rem}}
 </style>
 
 <div class="wrap">
@@ -146,32 +146,10 @@ svg.eq{display:block;width:100%;height:auto;max-height:260px;touch-action:manipu
 
   <div class="talk">
     <div class="dragon idle" id="dragon" aria-hidden="true">
-      <svg viewBox="0 0 120 124" width="100%">
-        <path d="M88 96c14 2 22-6 24-16-6 5-12 6-18 3" fill="var(--dragon-dark)"/>
-        <path d="M113 86c-6-4-8-8-5-11 2-2 4-1 5 1 1-2 3-3 5-1 3 3 1 7-5 11z" fill="var(--spike)"/>
-        <g class="wing"><path d="M36 70C20 56 10 62 8 76c8-6 14-2 16 4 4-6 10-6 12-10z" fill="var(--wing)"/></g>
-        <path d="M84 70c16-14 26-8 28 6-8-6-14-2-16 4-4-6-10-6-12-10z" fill="var(--wing)"/>
-        <ellipse cx="60" cy="86" rx="30" ry="27" fill="var(--dragon)"/>
-        <ellipse cx="60" cy="92" rx="18" ry="17" fill="var(--belly)"/>
-        <path d="M50 84h20M48 92h24M50 100h20" stroke="var(--dragon)" stroke-width="1.6" opacity=".35"/>
-        <ellipse cx="44" cy="112" rx="9" ry="6" fill="var(--dragon-dark)"/>
-        <ellipse cx="76" cy="112" rx="9" ry="6" fill="var(--dragon-dark)"/>
-        <path d="M44 22l-3-14 10 10z M76 22l3-14-10 10z" fill="var(--belly)"/>
-        <path d="M49 22l5-10 5 8z M56 18l6-11 6 11z M65 20l5-8 4 10z" fill="var(--spike)"/>
-        <circle cx="60" cy="44" r="26" fill="var(--dragon)"/>
-        <ellipse cx="60" cy="56" rx="15" ry="10" fill="var(--belly)"/>
-        <g class="flower"><circle cx="39" cy="19" r="4.2" fill="var(--petal)"/><circle cx="45" cy="22" r="4.2" fill="var(--petal)"/><circle cx="43" cy="28.5" r="4.2" fill="var(--petal)"/><circle cx="36" cy="28.5" r="4.2" fill="var(--petal)"/><circle cx="34" cy="22" r="4.2" fill="var(--petal)"/><circle cx="39.5" cy="24" r="2.6" fill="#FFD86B"/></g>
-        <circle cx="55" cy="54" r="1.6" fill="var(--dragon-dark)"/><circle cx="65" cy="54" r="1.6" fill="var(--dragon-dark)"/>
-        <circle cx="49" cy="38" r="8" fill="#fff"/><circle cx="71" cy="38" r="8" fill="#fff"/>
-        <path d="M42 33l-4-3M41.5 37l-5-1M78 33l4-3M78.5 37l5-1" stroke="#13302D" stroke-width="1.7" stroke-linecap="round"/>
-        <g class="pupil"><circle cx="50" cy="39" r="4.2" fill="#13302D"/><circle cx="72" cy="39" r="4.2" fill="#13302D"/>
-          <circle cx="51.5" cy="37.5" r="1.4" fill="#fff"/><circle cx="73.5" cy="37.5" r="1.4" fill="#fff"/></g>
-        <path class="brow" d="M42 27l12 3M78 27l-12 3" stroke="#13302D" stroke-width="2.4" stroke-linecap="round"/>
-        <circle cx="40" cy="50" r="4" fill="#F4A3A3" opacity=".6"/><circle cx="80" cy="50" r="4" fill="#F4A3A3" opacity=".6"/>
-        <path class="mouth m-idle" d="M53 61q7 5 14 0" stroke="#13302D" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-        <path class="mouth m-happy" d="M51 59q9 11 18 0z" fill="#13302D"/>
-        <ellipse class="mouth m-oops" cx="60" cy="62" rx="3.4" ry="4" fill="#13302D"/>
-      </svg>
+      <img class="g g-idle" src="img/gogosik-idle.webp" alt="" width="249" height="300">
+      <img class="g g-think" src="img/gogosik-think.webp" alt="" width="249" height="300">
+      <img class="g g-oops" src="img/gogosik-oops.webp" alt="" width="249" height="300">
+      <img class="g g-happy" src="img/gogosik-happy.webp" alt="" width="249" height="300">
     </div>
     <p class="bubble" id="bubble" role="status"></p>
   </div>
