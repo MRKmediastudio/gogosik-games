@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gogosik's Fifteen</title>
+<meta name="description" content="The classic 15 puzzle for kids, with Gogosik the dragon. Slide the tiles into order. 3×3, 4×4 and 5×5, numbers or picture. Free, no ads, works offline.">
+<meta name="theme-color" content="#1D3A35">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fifteen">
+<meta property="og:title" content="Gogosik's Fifteen">
+<meta property="og:description" content="The 1880 puzzle that drove America crazy, rebuilt for kids. Free, no ads.">
+<meta property="og:image" content="icons/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+html{-webkit-text-size-adjust:100%}body{margin:0}
+[hidden]{display:none!important}
+/* Layout: header, a stats strip, the felt board with wooden tiles as the hero object, Gogosik talking, then controls and settings. */
+:root{
+  --bg:#EDF4F1; --surface:#FFFFFF; --fg:#13302D; --muted:#4F6A66; --line:#CFDDD8;
+  --accent:#17897B; --accent-ink:#FFFFFF; --ember:#E5791C; --good:#2B8F55; --bad:#C2412D;
+  /* board + tiles are physical objects: same in both themes */
+  --felt:#1D3A35; --felt-edge:#12261F; --tile:#FAEED2; --tile-shade:#D6BA84; --tile-ink:#1D3A35; --tile-home:#2B8F55; --glow:#FFD86B;
+  --f-display:"Rubik",system-ui,"Segoe UI",sans-serif;
+  --f-body:"Nunito",system-ui,"Segoe UI",sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0D1817; --surface:#152523; --fg:#E2EFEB; --muted:#9DB6B1; --line:#27403C;
+    --accent:#3CC3B0; --accent-ink:#06211D; --ember:#F39A45; --good:#5CC98A; --bad:#F07A63;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0D1817; --surface:#152523; --fg:#E2EFEB; --muted:#9DB6B1; --line:#27403C;
+  --accent:#3CC3B0; --accent-ink:#06211D; --ember:#F39A45; --good:#5CC98A; --bad:#F07A63;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.main,.play,.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (min-width:900px){.wrap{max-width:1000px}.main{display:grid;grid-template-columns:minmax(0,560px) minmax(0,1fr);gap:28px;align-items:start}.side{padding-top:8px}.play .board{max-width:min(560px,calc(100vh - 190px));}}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(1.6rem,5vw,2.2rem);line-height:1.1;margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1 span{color:var(--ember)}
+.sub{margin:4px 0 0;color:var(--muted);font-weight:700}
+.head-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.lang{display:flex;border:2px solid var(--line);border-radius:999px;overflow:hidden;flex:none}
+.lang button{font:800 .9rem var(--f-display);border:0;background:transparent;color:var(--muted);padding:8px 14px;cursor:pointer;min-height:40px}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.install{font:800 .9rem var(--f-display);border:2px solid var(--ember);background:var(--ember);color:#fff;border-radius:999px;padding:8px 16px;min-height:40px;cursor:pointer}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:2px solid var(--line);border-radius:14px;padding:6px 10px;text-align:center}
+.stat small{display:block;font:800 .72rem var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.stat b{font:800 1.3rem var(--f-display);font-variant-numeric:tabular-nums}
+
+.board{background:var(--felt);border-radius:var(--r);padding:clamp(8px,2.4vw,14px);box-shadow:inset 0 0 0 6px var(--felt-edge),inset 0 12px 30px rgba(0,0,0,.35);position:relative;touch-action:none;user-select:none;-webkit-user-select:none}
+.grid{position:relative;width:100%;aspect-ratio:1;max-width:100%}
+.tile{position:absolute;border:0;padding:0;margin:0;cursor:pointer;border-radius:12%;background:var(--tile);color:var(--tile-ink);
+  box-shadow:0 5px 0 var(--tile-shade),0 7px 10px rgba(0,0,0,.3);font:800 var(--fs,2rem) var(--f-display);font-variant-numeric:tabular-nums;
+  transition:left .12s ease-out,top .12s ease-out,box-shadow .2s;display:grid;place-items:center;-webkit-tap-highlight-color:transparent;overflow:hidden}
+.tile:focus-visible{outline:4px solid var(--glow);outline-offset:2px;z-index:2}
+.tile.home{color:var(--tile-home)}
+.tile.home::after{content:"";position:absolute;right:9%;bottom:9%;width:9%;aspect-ratio:1;border-radius:50%;background:var(--tile-home)}
+.board.pic .tile{background-image:url(img/picture.webp);color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8),0 0 2px rgba(0,0,0,.8)}
+.board.pic .tile.home::after{background:#7BE09A;box-shadow:0 0 0 2px rgba(0,0,0,.35)}
+.board.pic .tile .n{font-size:.55em;position:absolute;left:9%;top:5%}
+.board.pic.no-num .tile .n{display:none}
+.board.solved .tile{box-shadow:0 5px 0 var(--tile-shade),0 0 18px var(--glow);animation:pop .5s ease-out both;animation-delay:calc(var(--k)*25ms)}
+.board.solved.pic .tile{border-radius:0;box-shadow:none}
+.peek-layer{position:absolute;inset:clamp(8px,2.4vw,14px);border-radius:10px;display:grid;place-items:center;background:var(--felt);z-index:5;pointer-events:none}
+.peek-layer img{width:100%;height:100%;object-fit:cover;border-radius:10px}
+.peek-grid{display:grid;width:100%;height:100%;gap:2%}
+.peek-grid span{background:var(--tile);border-radius:12%;display:grid;place-items:center;font:800 var(--fs,2rem) var(--f-display);color:var(--tile-ink)}
+.shake{animation:shake .35s}
+@keyframes pop{40%{transform:scale(1.07)}}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+
+.talk{display:flex;align-items:flex-end;gap:12px}
+.dragon{width:112px;flex:none;display:grid;align-self:flex-end}
+.dragon .g{grid-area:1/1;width:100%;height:auto;opacity:0;transform:scale(.96);transition:opacity .18s,transform .18s;filter:drop-shadow(0 6px 8px rgba(0,0,0,.18))}
+.dragon.idle .g-idle,.dragon.think .g-think,.dragon.oops .g-oops,.dragon.happy .g-happy{opacity:1;transform:none}
+.dragon.idle .g-idle{animation:bob 3.2s ease-in-out infinite}
+.dragon.happy .g-happy{animation:hop .6s ease-out 3}
+.dragon.oops .g-oops{animation:wobble .5s ease-in-out}
+@keyframes bob{50%{transform:translateY(-4px)}}
+@keyframes hop{40%{transform:translateY(-14px)}}
+@keyframes wobble{25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+.bubble{position:relative;background:var(--surface);border:2px solid var(--line);border-radius:var(--r);padding:12px 16px;font-weight:700;font-size:1.05rem;min-height:64px;flex:1;min-width:0;margin:0 0 18px}
+.bubble::before{content:"";position:absolute;left:-11px;bottom:18px;width:18px;height:18px;background:var(--surface);border-left:2px solid var(--line);border-bottom:2px solid var(--line);transform:rotate(45deg)}
+.bubble.win{border-color:var(--good)}.bubble.win::before{border-color:var(--good)}
+.bubble.oops{border-color:var(--ember)}.bubble.oops::before{border-color:var(--ember)}
+
+.controls{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font:800 1rem var(--f-display);border-radius:14px;padding:12px 18px;min-height:48px;cursor:pointer;border:2px solid var(--line);background:var(--surface);color:var(--fg)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:focus-visible,.lang button:focus-visible,.seg button:focus-visible,.install:focus-visible{outline:3px solid var(--ember);outline-offset:2px}
+
+.settings{background:var(--surface);border:2px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:12px}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.row > b{font:800 .8rem var(--f-display);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);min-width:76px}
+.seg{display:flex;border:2px solid var(--line);border-radius:12px;overflow:hidden}
+.seg button{flex:1 1 auto}
+.seg button{font:800 .92rem var(--f-display);border:0;background:transparent;color:var(--fg);padding:9px 14px;min-height:44px;cursor:pointer}
+.seg button + button{border-left:2px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--ember);color:#fff}
+.seg button small{display:block;font:700 .7rem var(--f-body);opacity:.8}
+.note{color:var(--muted);font-size:.9rem;margin:0}
+.ios-tip{background:var(--surface);border:2px dashed var(--ember);border-radius:var(--r);padding:12px 16px;margin:0;font-weight:700}
+.foot{text-align:center;color:var(--muted);font-size:.9rem}.foot a{color:var(--accent);font-weight:800}
+@media (display-mode:standalone){.foot a[href="../"]{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:460px){.row > b{flex-basis:100%}.seg{flex:1 1 100%}.seg button{padding:9px 8px}.dragon{width:92px}.bubble{font-size:1rem}.stat b{font-size:1.15rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1 id="title">Gogosik’s <span>Fifteen</span></h1>
+      <p class="sub" id="sub"></p>
+    </div>
+    <div class="head-actions">
+      <button type="button" class="install" id="install-btn" hidden>⬇ Install</button>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="ru">RU</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="main">
+  <div class="play">
+  <div class="stats" aria-live="off">
+    <div class="stat"><small id="l-moves"></small><b id="moves">0</b></div>
+    <div class="stat"><small id="l-time"></small><b id="time">0:00</b></div>
+    <div class="stat"><small id="l-best"></small><b id="best">—</b></div>
+  </div>
+
+  <section class="board" id="board">
+    <div class="grid" id="grid" role="group" aria-label="Puzzle board"></div>
+    <div class="peek-layer" id="peek" hidden></div>
+  </section>
+  </div>
+  <div class="side">
+
+  <div class="talk">
+    <div class="dragon idle" id="dragon" aria-hidden="true">
+      <img class="g g-idle" src="img/gogosik-idle.webp" alt="" width="249" height="300">
+      <img class="g g-think" src="img/gogosik-think.webp" alt="" width="249" height="300">
+      <img class="g g-oops" src="img/gogosik-oops.webp" alt="" width="249" height="300">
+      <img class="g g-happy" src="img/gogosik-happy.webp" alt="" width="249" height="300">
+    </div>
+    <p class="bubble" id="bubble" role="status"></p>
+  </div>
+
+  <div class="controls">
+    <button type="button" class="btn primary" id="new-btn"></button>
+    <button type="button" class="btn" id="peek-btn" aria-pressed="false"></button>
+  </div>
+
+  <section class="settings" aria-label="Settings">
+    <div class="row"><b id="l-size"></b>
+      <div class="seg" id="size-seg">
+        <button type="button" data-size="3"><span>3×3</span><small data-t="easy"></small></button>
+        <button type="button" data-size="4"><span>4×4</span><small data-t="classic"></small></button>
+        <button type="button" data-size="5"><span>5×5</span><small data-t="hard"></small></button>
+      </div>
+    </div>
+    <div class="row"><b id="l-mode"></b>
+      <div class="seg" id="mode-seg">
+        <button type="button" data-mode="num" data-t="numbers"></button>
+        <button type="button" data-mode="pic" data-t="picture"></button>
+        <button type="button" data-mode="picnum" data-t="pictureNum"></button>
+      </div>
+    </div>
+    <p class="note" id="note"></p>
+  </section>
+  <p class="ios-tip" id="ios-tip" hidden></p>
+  </div>
+  </div>
+  <footer class="foot"><a href="../">More free games</a> · Made with AI by <a href="https://www.instagram.com/mrkmediastudio/" target="_blank" rel="noopener">MRK Media Studio</a></footer>
+</div>
+
+<script>
+(function(){
+const T={
+ en:{title:'Gogosik’s <span>Fifteen</span>',sub:'Slide the tiles back into order.',
+  moves:'Moves',time:'Time',best:'Best',size:'Size',mode:'Tiles',easy:'Easy',classic:'Classic',hard:'Hard',
+  numbers:'Numbers',picture:'Picture',pictureNum:'Picture + 123',newGame:'New game',peek:'Peek',peekOff:'Hide',
+  start:n=>`Hi! I’m Gogosik. Put the tiles in order, 1 to ${n}. Tap a tile in line with the empty spot.`,
+  startPic:'Hi! I’m Gogosik. Slide the tiles to put my picture back together!',
+  cant:'Only tiles in the same row or column as the empty spot can slide.',
+  row1:'The top row is done! Leave it alone now and finish the next row.',
+  row1small:'Top row done! Now the rest.',
+  col1:'Top row and left column done! The puzzle just got smaller.',
+  tip:'Tip: finish the top row first, then the left column. Solve the last few tiles together.',
+  keep:['Nice move!','You’re getting closer.','Keep going, I believe in you!'],
+  win:(m,t)=>`You did it! ${m} moves in ${t}.`,best1:' New best! 🎉',
+  shuffled:'All mixed up! Every new game is different, and every one can be solved.',
+  note:'For parents: we mix the tiles with real moves from the solved board, so every game can always be solved. The green dot means a tile is already in its place. Works offline; nothing leaves your device.',
+  tileLabel:(n,r,c)=>`Tile ${n}, row ${r}, column ${c}`},
+ ru:{title:'Пятнашки <span>Гогосика</span>',sub:'Расставь фишки по порядку.',
+  moves:'Ходы',time:'Время',best:'Рекорд',size:'Размер',mode:'Фишки',easy:'Легко',classic:'Классика',hard:'Сложно',
+  numbers:'Цифры',picture:'Картинка',pictureNum:'Картинка + 123',newGame:'Новая игра',peek:'Подсмотреть',peekOff:'Скрыть',
+  start:n=>`Привет! Я Гогосик. Расставь фишки по порядку, от 1 до ${n}. Нажми на фишку в одном ряду с пустым местом.`,
+  startPic:'Привет! Я Гогосик. Двигай фишки и собери мою картинку!',
+  cant:'Двигаются только фишки в том же ряду или столбце, что и пустое место.',
+  row1:'Верхний ряд готов! Больше его не трогай, собирай следующий.',
+  row1small:'Верхний ряд готов! Теперь остальное.',
+  col1:'Верхний ряд и левый столбец готовы! Пазл стал меньше.',
+  tip:'Подсказка: сначала собери верхний ряд, потом левый столбец. Последние фишки собирай вместе.',
+  keep:['Хороший ход!','Уже ближе!','Продолжай, у тебя получится!'],
+  win:(m,t)=>`Получилось! ${m} ходов за ${t}.`,best1:' Новый рекорд! 🎉',
+  shuffled:'Всё перемешано! Каждая игра новая, и любую можно собрать.',
+  note:'Для родителей: фишки перемешиваются настоящими ходами из собранного поля, поэтому любая партия решаема. Зелёная точка — фишка уже на своём месте. Работает без интернета, ничего не отправляется.',
+  tileLabel:(n,r,c)=>`Фишка ${n}, ряд ${r}, столбец ${c}`}
+};
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+let lang=(()=>{try{const s=localStorage.getItem('gogosik-lang');if(s)return s}catch(e){}return (navigator.language||'en').toLowerCase().startsWith('ru')?'ru':'en'})();
+let N=store.get('g15-size',4),mode=store.get('g15-mode','num');
+let board=[],moves=0,t0=0,elapsed=0,timer=null,solved=false,idleTimer=null,milestones={},tiles=[],peeking=false;
+
+/* ---------- core puzzle ---------- */
+function solvedBoard(n){const b=[];for(let i=1;i<n*n;i++)b.push(i);b.push(0);return b}
+function isSolved(b){for(let i=0;i<b.length-1;i++)if(b[i]!==i+1)return false;return true}
+function manhattan(b,n){let d=0;b.forEach((v,i)=>{if(!v)return;const g=v-1;d+=Math.abs((i/n|0)-(g/n|0))+Math.abs(i%n-g%n)});return d}
+/* Shuffle by random legal moves from the solved board: always solvable, different every time. */
+function shuffle(n){
+  const b=solvedBoard(n);let e=b.length-1,prev=-1;
+  const steps={3:160,4:420,5:900}[n];const minDist={3:10,4:30,5:60}[n];
+  const step=()=>{const r=e/n|0,c=e%n,opts=[];
+    if(r>0)opts.push(e-n);if(r<n-1)opts.push(e+n);if(c>0)opts.push(e-1);if(c<n-1)opts.push(e+1);
+    const ok=opts.filter(o=>o!==prev);const o=ok[Math.random()*ok.length|0];b[e]=b[o];b[o]=0;prev=e;e=o};
+  for(let i=0;i<steps;i++)step();
+  let guard=0;while((manhattan(b,n)<minDist||isSolved(b))&&guard++<2000)step();
+  return b;
+}
+/* Try to slide the tile at index i toward the empty spot. Returns number of tiles moved. */
+function slide(i){
+  const e=board.indexOf(0);if(i===e)return 0;
+  const ri=i/N|0,ci=i%N,re=e/N|0,ce=e%N;
+  let stepIdx;
+  if(ri===re)stepIdx=ci<ce?-1:1;else if(ci===ce)stepIdx=ri<re?-N:N;else return 0;
+  let k=0,cur=e;
+  while(cur!==i){const nx=cur+stepIdx;board[cur]=board[nx];board[nx]=0;cur=nx;k++}
+  return k;
+}
+
+/* ---------- rendering ---------- */
+const GAP=2.2; // % of board
+function geom(){const s=(100-GAP*(N+1))/N;return {s,pos:i=>({x:GAP+(i%N)*(s+GAP),y:GAP+(i/N|0)*(s+GAP)})}}
+function buildTiles(){
+  const grid=$('grid');grid.innerHTML='';tiles=[];
+  const {s}=geom();
+  grid.style.setProperty('--fs',`clamp(1rem,${N===3?9:N===4?7:5.4}vw,${N===3?3:N===4?2.4:1.8}rem)`);
+  $('board').style.setProperty('--fs',grid.style.getPropertyValue('--fs'));
+  for(let v=1;v<N*N;v++){
+    const b=document.createElement('button');b.type='button';b.className='tile';b.dataset.v=v;
+    b.style.width=b.style.height=s+'%';
+    const g=v-1,gr=g/N|0,gc=g%N;
+    b.style.backgroundSize=`${N*100}% ${N*100}%`;
+    b.style.backgroundPosition=`${N>1?gc/(N-1)*100:0}% ${N>1?gr/(N-1)*100:0}%`;
+    b.style.setProperty('--k',v);
+    b.innerHTML=`<span class="n">${v}</span>`;
+    grid.appendChild(b);tiles[v]=b;
+  }
+}
+function place(){
+  const {pos}=geom(),t=T[lang];
+  board.forEach((v,i)=>{if(!v)return;const p=pos(i),el=tiles[v];el.style.left=p.x+'%';el.style.top=p.y+'%';
+    el.classList.toggle('home',v===i+1);el.setAttribute('aria-label',t.tileLabel(v,(i/N|0)+1,i%N+1))});
+}
+function setMode(){const b=$('board');b.classList.toggle('pic',mode!=='num');b.classList.toggle('no-num',mode==='pic')}
+function fmt(ms){const s=Math.floor(ms/1000);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`}
+function stats(){$('moves').textContent=moves;$('time').textContent=fmt(elapsed);
+  const b=store.get('g15-best-'+N,null);$('best').textContent=b?`${b.m} · ${fmt(b.t)}`:'—'}
+function say(text,mood,cls){$('bubble').textContent=text;$('bubble').className='bubble'+(cls?' '+cls:'');$('dragon').className='dragon '+(mood||'idle')}
+
+/* ---------- game flow ---------- */
+function newGame(first){
+  stopTimer();board=shuffle(N);moves=0;elapsed=0;solved=false;milestones={};peekOff();
+  $('board').classList.remove('solved');buildTiles();setMode();place();stats();
+  const t=T[lang];say(first?(mode==='num'?t.start(N*N-1):t.startPic):t.shuffled,'idle');armIdle();
+}
+function startTimer(){if(timer)return;t0=Date.now()-elapsed;timer=setInterval(()=>{elapsed=Date.now()-t0;$('time').textContent=fmt(elapsed)},250)}
+function stopTimer(){clearInterval(timer);timer=null}
+function armIdle(){clearTimeout(idleTimer);if(solved)return;idleTimer=setTimeout(()=>{if(!solved)say(T[lang].tip,'think')},25000)}
+function rowDone(r){for(let c=0;c<N;c++)if(board[r*N+c]!==r*N+c+1)return false;return true}
+function colDone(c){for(let r=0;r<N;r++)if(board[r*N+c]!==r*N+c+1)return false;return true}
+
+function tryMove(i){
+  if(solved)return;
+  const k=slide(i);const t=T[lang];
+  if(!k){const b=$('board');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake');say(t.cant,'oops','oops');armIdle();return}
+  if(!moves)startTimer();moves+=k;place();stats();armIdle();
+  if(isSolved(board)){win();return}
+  if(N>=3&&rowDone(0)&&!milestones.row){milestones.row=1;say(N===3?t.row1small:t.row1,'happy');return}
+  if(N>=4&&rowDone(0)&&colDone(0)&&!milestones.col){milestones.col=1;say(t.col1,'happy');return}
+  if(moves%25===0)say(t.keep[(moves/25|0)%t.keep.length],'idle');
+  else if($('dragon').classList.contains('oops'))say(t.keep[0],'idle');
+}
+function win(){
+  solved=true;stopTimer();elapsed=Date.now()-t0;clearTimeout(idleTimer);stats();
+  const key='g15-best-'+N,b=store.get(key,null);let nb=false;
+  if(!b||moves<b.m||(moves===b.m&&elapsed<b.t)){store.set(key,{m:moves,t:elapsed});nb=true}
+  stats();$('board').classList.add('solved');
+  const t=T[lang];say(t.win(moves,fmt(elapsed))+(nb?t.best1:''),'happy','win');
+}
+
+/* ---------- peek at the goal ---------- */
+function peekOn(){
+  const layer=$('peek');peeking=true;
+  if(mode==='num'){layer.innerHTML=`<div class="peek-grid" style="grid-template-columns:repeat(${N},1fr)">${solvedBoard(N).map(v=>v?`<span>${v}</span>`:'<i></i>').join('')}</div>`}
+  else layer.innerHTML='<img src="img/picture.webp" alt="">';
+  layer.hidden=false;$('peek-btn').setAttribute('aria-pressed','true');$('peek-btn').textContent=T[lang].peekOff;
+}
+function peekOff(){peeking=false;$('peek').hidden=true;$('peek-btn').setAttribute('aria-pressed','false');$('peek-btn').textContent=T[lang].peek}
+
+/* ---------- input: tap, swipe, keyboard ---------- */
+let down=null;
+$('grid').addEventListener('pointerdown',e=>{if(peeking)return;down={x:e.clientX,y:e.clientY,el:e.target.closest('.tile')}});
+$('grid').addEventListener('pointerup',e=>{
+  if(!down)return;const dx=e.clientX-down.x,dy=e.clientY-down.y,el=down.el;down=null;
+  if(Math.max(Math.abs(dx),Math.abs(dy))>24){ // swipe: move the tile next to the empty spot in that direction
+    const e0=board.indexOf(0),r=e0/N|0,c=e0%N;let src=-1;
+    if(Math.abs(dx)>Math.abs(dy)){if(dx>0&&c>0)src=e0-1;else if(dx<0&&c<N-1)src=e0+1}
+    else{if(dy>0&&r>0)src=e0-N;else if(dy<0&&r<N-1)src=e0+N}
+    if(src>=0)tryMove(src);return}
+  if(el)tryMove(board.indexOf(+el.dataset.v));
+});
+$('grid').addEventListener('click',e=>{if(e.detail!==0)return;const el=e.target.closest('.tile');if(el)tryMove(board.indexOf(+el.dataset.v))}); // keyboard Enter/Space
+document.addEventListener('keydown',e=>{
+  const map={ArrowUp:N,ArrowDown:-N,ArrowLeft:1,ArrowRight:-1};if(!(e.key in map)||solved)return;
+  if(e.target.closest&&e.target.closest('.seg,.lang'))return;
+  const e0=board.indexOf(0),src=e0+map[e.key],r=e0/N|0,c=e0%N;
+  if(src<0||src>=N*N)return;if((e.key==='ArrowLeft'&&c===N-1)||(e.key==='ArrowRight'&&c===0))return;
+  e.preventDefault();tryMove(src);
+});
+
+$('new-btn').addEventListener('click',()=>newGame(false));
+$('peek-btn').addEventListener('click',()=>peeking?peekOff():peekOn());
+$('size-seg').addEventListener('click',e=>{const b=e.target.closest('[data-size]');if(!b)return;N=+b.dataset.size;store.set('g15-size',N);syncSeg();newGame(true)});
+$('mode-seg').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(!b)return;mode=b.dataset.mode;store.set('g15-mode',mode);syncSeg();setMode();if(peeking)peekOn()});
+document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>{lang=b.dataset.lang;try{localStorage.setItem('gogosik-lang',lang)}catch(e){}applyLang()}));
+
+function syncSeg(){
+  document.querySelectorAll('#size-seg button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.size===N)));
+  document.querySelectorAll('#mode-seg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+}
+function applyLang(){
+  const t=T[lang];document.documentElement.lang=lang;$('title').innerHTML=t.title;$('sub').textContent=t.sub;
+  $('l-moves').textContent=t.moves;$('l-time').textContent=t.time;$('l-best').textContent=t.best;$('l-size').textContent=t.size;$('l-mode').textContent=t.mode;
+  document.querySelectorAll('[data-t]').forEach(el=>el.textContent=t[el.dataset.t]);
+  $('new-btn').textContent=t.newGame;$('peek-btn').textContent=peeking?t.peekOff:t.peek;$('note').textContent=t.note;
+  document.querySelectorAll('.lang button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===lang)));
+  place();if(!moves&&!solved)say(mode==='num'?t.start(N*N-1):t.startPic,'idle');
+}
+if(![3,4,5].includes(N))N=4;if(!['num','pic','picnum'].includes(mode))mode='num';
+syncSeg();newGame(true);applyLang();
+// for automated checks
+window.__g15={get board(){return board.slice()},get N(){return N},isSolved:()=>isSolved(board),solvable:b=>{const n=Math.sqrt(b.length);let inv=0;const a=b.filter(Boolean);for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)if(a[i]>a[j])inv++;if(n%2)return inv%2===0;const rowFromBottom=n-(b.indexOf(0)/n|0);return (inv+rowFromBottom)%2===1},shuffle};
+})();
+</script>
+
+<script>
+(function(){
+  const L=()=>document.documentElement.lang==='ru';
+  const btn=document.getElementById('install-btn'),tip=document.getElementById('ios-tip');
+  const label=()=>{btn.textContent=L()?'⬇ Установить':'⬇ Install';tip.textContent=L()?'На iPhone/iPad: нажми «Поделиться» ⬆, затем «На экран Домой».':'On iPhone/iPad: tap Share ⬆, then “Add to Home Screen”.'};
+  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  let deferred=null;
+  label();new MutationObserver(label).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+  if(!standalone){
+    addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;btn.hidden=false});
+    if(ios)btn.hidden=false;
+  }
+  btn.addEventListener('click',async()=>{
+    if(deferred){deferred.prompt();await deferred.userChoice.catch(()=>{});deferred=null;btn.hidden=true}
+    else if(ios){tip.hidden=!tip.hidden}
+  });
+  addEventListener('appinstalled',()=>{btn.hidden=true});
+  if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+})();
+</script>
+</body>
+</html>
