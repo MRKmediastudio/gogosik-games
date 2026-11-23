@@ -77,6 +77,8 @@ h1 span{color:var(--ember)}
 .board.pic.no-num .tile .n{display:none}
 .board.solved .tile{box-shadow:0 5px 0 var(--tile-shade),0 0 18px var(--glow);animation:pop .5s ease-out both;animation-delay:calc(var(--k)*25ms)}
 .board.solved.pic .tile{border-radius:0;box-shadow:none}
+.tile.last{cursor:default;animation:drop .45s ease-out both!important;animation-delay:.25s!important}
+@keyframes drop{from{opacity:0;transform:scale(1.25)}to{opacity:1;transform:none}}
 .peek-layer{position:absolute;inset:clamp(8px,2.4vw,14px);border-radius:10px;display:grid;place-items:center;background:var(--felt);z-index:5;pointer-events:none}
 .peek-layer img{width:100%;height:100%;object-fit:cover;border-radius:10px}
 .peek-grid{display:grid;width:100%;height:100%;gap:2%}
@@ -316,6 +318,10 @@ function win(){
   const key='g15-best-'+N,b=store.get(key,null);let nb=false;
   if(!b||moves<b.m||(moves===b.m&&elapsed<b.t)){store.set(key,{m:moves,t:elapsed});nb=true}
   stats();$('board').classList.add('solved');
+  if(mode!=='num'){ // picture mode: the missing last piece drops in, so the picture is whole
+    const {s,pos}=geom(),p=pos(N*N-1),el=document.createElement('div');el.className='tile last';el.setAttribute('aria-hidden','true');
+    el.style.cssText=`width:${s}%;height:${s}%;left:${p.x}%;top:${p.y}%;background-size:${N*100}% ${N*100}%;background-position:100% 100%;--k:${N*N}`;
+    $('grid').appendChild(el)}
   const t=T[lang];say(t.win(moves,fmt(elapsed))+(nb?t.best1:''),'happy','win');
 }
 
