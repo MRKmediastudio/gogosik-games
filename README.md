@@ -14,6 +14,6 @@ When you change a game, bump `VERSION` in its `sw.js` so installed copies update
 
 ## License
 
-© 2026 MRK Media Studio. All rights reserved. Gogosik™ is a trademark of MRK Media Studio.
+© 2026 MKR Invest LLC (MRK Media Studio). All rights reserved. Gogosik™ is a trademark of MKR Invest LLC.
 
 This is **not** open-source software. The code is public only so the games can be hosted on GitHub Pages. No license is granted to copy, re-host, modify or redistribute any part of it (code, art, the Gogosik character). See [LICENSE](LICENSE).

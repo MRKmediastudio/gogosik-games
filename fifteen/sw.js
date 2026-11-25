@@ -1,5 +1,5 @@
 // Offline cache for Gogosik's Fifteen. Bump VERSION when files change.
-const VERSION = 'fifteen-v3';
+const VERSION = 'fifteen-v4';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icons/icon-192.png', './icons/icon-512.png', './icons/favicon-64.png', './img/gogosik-idle.webp', './img/gogosik-think.webp', './img/gogosik-oops.webp', './img/gogosik-happy.webp', './img/picture.webp'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(CORE))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
