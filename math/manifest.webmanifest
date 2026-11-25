@@ -1,0 +1,16 @@
+{
+  "name": "Gogosik's Math Quest",
+  "short_name": "Math Quest",
+  "description": "Math practice for kids with hints. Never gives the answer.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#EDF4F1",
+  "theme_color": "#1D3A35",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

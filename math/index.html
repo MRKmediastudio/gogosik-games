@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Gogosik's Math Quest</title>
+<meta name="description" content="Math practice for kids 8–11 with Gogosik the dragon: powers, prime factors, GCF, order of operations, fractions, angles. Hints and small steps, never the answer. Free, no ads, works offline.">
+<meta name="theme-color" content="#1D3A35">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon-64.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Math Quest">
+<meta property="og:title" content="Gogosik's Math Quest">
+<meta property="og:description" content="Homework-style math practice with hints. It never gives the answer. Free, no ads.">
+<meta property="og:image" content="icons/icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@500;700;800&family=Nunito:wght@500;700;800&display=swap">
+<style>
+html{-webkit-text-size-adjust:100%}body{margin:0}
+[hidden]{display:none!important}
+/* Layout: one column. Home = level cards. Play = Gogosik talking, the problem card (felt chalkboard), the input pad, then the help cards that unfold under it. */
+:root{
+  --bg:#EDF4F1; --surface:#FFFFFF; --fg:#13302D; --muted:#4F6A66; --line:#CFDDD8; --soft:#F4F8F6;
+  --accent:#17897B; --accent-ink:#FFFFFF; --ember:#E5791C; --good:#2B8F55; --bad:#C2412D; --sun:#FFC857;
+  --felt:#1D3A35; --felt-edge:#12261F; --chalk:#F4EEDC; --chalk-dim:#A9C2BB; --chalk-hi:#FFD86B;
+  --f-display:"Rubik",system-ui,"Segoe UI",sans-serif; --f-body:"Nunito",system-ui,"Segoe UI",sans-serif; --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1817; --surface:#152523; --fg:#E2EFEB; --muted:#9DB6B1; --line:#27403C; --soft:#1A2D2A;
+  --accent:#3CC3B0; --accent-ink:#06211D; --ember:#F39A45; --good:#5CC98A; --bad:#F07A63; color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0D1817; --surface:#152523; --fg:#E2EFEB; --muted:#9DB6B1; --line:#27403C; --soft:#1A2D2A;
+  --accent:#3CC3B0; --accent-ink:#06211D; --ember:#F39A45; --good:#5CC98A; --bad:#F07A63; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px 40px}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font:800 clamp(1.6rem,5vw,2.2rem)/1.1 var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+h1 span{color:var(--ember)}
+.sub{margin:4px 0 0;color:var(--muted);font-weight:700}
+.head-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.lang{display:flex;border:2px solid var(--line);border-radius:999px;overflow:hidden}
+.lang button{font:800 .9rem var(--f-display);border:0;background:transparent;color:var(--muted);padding:8px 14px;cursor:pointer;min-height:40px}
+.lang button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.install{font:800 .9rem var(--f-display);border:2px solid var(--ember);background:var(--ember);color:#fff;border-radius:999px;padding:8px 16px;min-height:40px;cursor:pointer}
+.btn{font:800 1rem var(--f-display);border-radius:14px;padding:12px 18px;min-height:48px;cursor:pointer;border:2px solid var(--line);background:var(--surface);color:var(--fg)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.warm{background:var(--ember);border-color:var(--ember);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid var(--ember);outline-offset:2px}
+
+/* Gogosik */
+.talk{display:flex;align-items:flex-end;gap:12px}
+.dragon{width:104px;flex:none;display:grid;align-self:flex-end}
+.dragon .g{grid-area:1/1;width:100%;height:auto;opacity:0;transform:scale(.96);transition:opacity .18s,transform .18s;filter:drop-shadow(0 6px 8px rgba(0,0,0,.18))}
+.dragon.idle .g-idle,.dragon.think .g-think,.dragon.oops .g-oops,.dragon.happy .g-happy{opacity:1;transform:none}
+.dragon.idle .g-idle{animation:bob 3.2s ease-in-out infinite}
+.dragon.happy .g-happy{animation:hop .6s ease-out 2}
+.dragon.oops .g-oops{animation:wobble .5s ease-in-out}
+@keyframes bob{50%{transform:translateY(-4px)}}@keyframes hop{40%{transform:translateY(-14px)}}@keyframes wobble{25%{transform:rotate(-4deg)}75%{transform:rotate(4deg)}}
+.bubble{position:relative;background:var(--surface);border:2px solid var(--line);border-radius:var(--r);padding:12px 16px;font-weight:700;font-size:1.03rem;min-height:64px;flex:1;min-width:0;margin:0 0 16px}
+.bubble::before{content:"";position:absolute;left:-11px;bottom:18px;width:18px;height:18px;background:var(--surface);border-left:2px solid var(--line);border-bottom:2px solid var(--line);transform:rotate(45deg)}
+.bubble.win{border-color:var(--good)}.bubble.win::before{border-color:var(--good)}
+.bubble.oops{border-color:var(--ember)}.bubble.oops::before{border-color:var(--ember)}
+
+/* home */
+.levels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.lvl{display:grid;gap:4px;text-align:left;background:var(--surface);border:2px solid var(--line);border-radius:var(--r);padding:14px;cursor:pointer;color:var(--fg);min-height:118px}
+.lvl:hover{border-color:var(--ember)}
+.lvl .ico{font:800 1.5rem var(--f-display);color:var(--accent)}
+.lvl b{font:800 1.05rem/1.2 var(--f-display)}
+.lvl small{color:var(--muted);font-weight:700;font-size:.85rem;line-height:1.3}
+.lvl .st{color:var(--line);letter-spacing:2px}.lvl .st i{color:var(--sun);font-style:normal}
+.note{color:var(--muted);font-size:.9rem;margin:0}
+.parents{background:var(--surface);border:2px solid var(--line);border-radius:var(--r);padding:14px 16px}
+.parents h2{font:800 1rem var(--f-display);margin:0 0 6px}
+.parents ol{margin:0;padding-left:1.2em}.parents li{margin:2px 0}
+
+/* play */
+.bar{display:flex;align-items:center;gap:10px}
+.bar h2{margin:0;font:800 1.15rem/1.15 var(--f-display);flex:1;min-width:0}
+.bar h2 small{display:block;font:800 .72rem var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--ember)}
+.icon{width:44px;height:44px;border-radius:50%;padding:0;display:grid;place-items:center;font-size:1.2rem}
+.dots{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:44%}
+.dots i{width:12px;height:12px;border-radius:50%;background:var(--surface);box-shadow:inset 0 0 0 2px var(--line)}
+.dots i.cur{box-shadow:inset 0 0 0 3px var(--accent)}
+.dots i.ok{background:var(--good);box-shadow:none}.dots i.ok2{background:var(--sun);box-shadow:none}.dots i.skip{background:var(--ember);box-shadow:none}
+.board{background:var(--felt);color:var(--chalk);border-radius:var(--r);padding:16px;box-shadow:inset 0 0 0 6px var(--felt-edge),inset 0 12px 30px rgba(0,0,0,.35);display:grid;gap:12px}
+.ask{margin:0;color:var(--chalk-dim);font-weight:800;font-size:.95rem}
+.expr{font:800 clamp(1.7rem,7vw,2.4rem)/1.25 var(--f-display);text-align:center;overflow-x:auto;font-variant-numeric:tabular-nums;padding:2px 0}
+.expr sup{font-size:.6em;vertical-align:.8em;line-height:0}
+.fr{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;line-height:1;font-size:.8em;margin:0 .1em}
+.fr>span:first-child{border-bottom:3px solid currentColor;padding:0 .15em .08em}.fr>span:last-child{padding:.08em .15em 0}
+.vis{text-align:center}.vis svg{max-width:100%;height:auto}
+.ans{display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(255,255,255,.08);border:2px dashed var(--chalk-dim);border-radius:14px;padding:6px 12px;min-height:60px;font:800 2rem var(--f-display);font-variant-numeric:tabular-nums}
+.ans .val{min-width:1.2ch;color:var(--chalk-hi)}
+.ans .val:empty::after{content:"?";color:var(--chalk-dim);animation:blink 1.1s steps(2) infinite}
+.ans.good{border-style:solid;border-color:#7BE09A}.ans.good .val{color:#7BE09A}
+.ans .pre{color:var(--chalk-dim);font-size:1.3rem}
+@keyframes blink{50%{opacity:0}}
+.ans.act{box-shadow:0 0 0 3px var(--sun)}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.pad button{height:56px;font:800 1.5rem var(--f-display)}
+.signs,.primes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.primes{grid-template-columns:repeat(5,1fr)}
+.signs button{height:70px;font:800 2.3rem var(--f-display)}
+.primes button{height:60px;font:800 1.5rem var(--f-display);border-radius:50%;aspect-ratio:1;padding:0;justify-self:center;width:100%;max-width:64px}
+.signs button.right,.primes button.right{background:var(--good);color:#fff;border-color:var(--good)}
+.signs button.bad{opacity:.4;text-decoration:line-through}
+.tree{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;font:800 1.5rem var(--f-display)}
+.tree .p{background:var(--chalk-hi);color:var(--felt);border-radius:999px;padding:2px 14px;animation:pop .3s ease-out}
+.tree .rest{color:var(--chalk);border:2px dashed var(--chalk-dim);border-radius:12px;padding:0 12px}
+@keyframes pop{0%{transform:scale(.6)}70%{transform:scale(1.12)}100%{transform:scale(1)}}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row .btn{flex:1}
+.help{display:grid;gap:10px}
+.help:empty{display:none}
+.hcard{background:var(--surface);border:2px dashed var(--line);border-radius:16px;padding:12px 14px;font-weight:700;line-height:1.55;animation:pop .25s ease-out}
+.hcard h3{margin:0 0 4px;font:800 .78rem var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.hcard.ex{border-style:solid;background:var(--soft)}.hcard.ex h3{color:var(--ember)}
+.hcard ol{margin:4px 0 0;padding-left:1.3em}.hcard li{margin:2px 0}
+.step{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.step .q{font:800 1.15rem var(--f-display);font-variant-numeric:tabular-nums}
+.step .ans{min-height:44px;font-size:1.3rem;padding:2px 10px;background:var(--soft);border-color:var(--line);color:var(--fg)}
+.step .ans .val{color:var(--accent)}.step .ans .val:empty::after{color:var(--muted)}
+.step.done{opacity:.7}.step.done .q::after{content:" ✓";color:var(--good)}
+.shake{animation:shake .35s}
+@keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(5px)}75%{transform:translateX(-3px)}}
+/* win */
+.winbox{text-align:center;display:grid;gap:12px;justify-items:center;padding-top:10px}
+.winbox img{width:190px;height:auto}
+.winbox h2{margin:0;font:800 2rem var(--f-display);color:var(--ember)}
+.bigstars{font-size:2.6rem;letter-spacing:6px;color:var(--line)}.bigstars i{color:var(--sun);font-style:normal}
+.winbtns{display:grid;gap:10px;width:100%;max-width:340px}
+.ios-tip{background:var(--surface);border:2px dashed var(--ember);border-radius:var(--r);padding:12px 16px;margin:0;font-weight:700}
+.foot{text-align:center;color:var(--muted);font-size:.9rem}.foot a{color:var(--accent);font-weight:800}
+@media (display-mode:standalone){.foot a[href="../"]{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:420px){.dragon{width:86px}.bubble{font-size:.98rem}.levels{gap:10px}.lvl{padding:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1 id="title"></h1><p class="sub" id="sub"></p></div>
+    <div class="head-actions">
+      <button type="button" class="install" id="install-btn" hidden>⬇ Install</button>
+      <div class="lang" role="group" aria-label="Language"><button type="button" data-lang="ru">RU</button><button type="button" data-lang="en">EN</button></div>
+    </div>
+  </header>
+
+  <div class="talk">
+    <div class="dragon idle" id="dragon" aria-hidden="true">
+      <img class="g g-idle" src="img/gogosik-idle.webp" alt="" width="249" height="300">
+      <img class="g g-think" src="img/gogosik-think.webp" alt="" width="249" height="300">
+      <img class="g g-oops" src="img/gogosik-oops.webp" alt="" width="249" height="300">
+      <img class="g g-happy" src="img/gogosik-happy.webp" alt="" width="249" height="300">
+    </div>
+    <p class="bubble" id="bubble" role="status"></p>
+  </div>
+
+  <section id="home">
+    <div class="levels" id="levels"></div>
+    <div class="parents" style="margin-top:14px"><h2 id="p-h"></h2><ol id="p-list"></ol></div>
+  </section>
+
+  <section id="play" hidden>
+    <div class="bar" style="margin-bottom:12px">
+      <button type="button" class="btn icon" id="back" aria-label="Back to topics">←</button>
+      <h2 id="ptitle"></h2>
+      <div class="dots" id="dots"></div>
+    </div>
+    <div class="board" id="board"></div>
+    <div id="input" style="margin-top:12px"></div>
+    <div class="row" style="margin-top:12px">
+      <button type="button" class="btn" id="hint-btn"></button>
+      <button type="button" class="btn" id="skip-btn" hidden></button>
+    </div>
+    <div class="help" id="help" style="margin-top:12px"></div>
+    <button type="button" class="btn warm" id="next-btn" style="width:100%;margin-top:12px" hidden></button>
+  </section>
+
+  <section id="win" hidden>
+    <div class="winbox">
+      <img src="img/gogosik-happy.webp" alt="" width="249" height="300">
+      <h2 id="w-title"></h2>
+      <div class="bigstars" id="w-stars"></div>
+      <p class="note" id="w-text"></p>
+      <div class="winbtns">
+        <button type="button" class="btn primary" id="w-again"></button>
+        <button type="button" class="btn" id="w-home"></button>
+      </div>
+    </div>
+  </section>
+
+  <p class="ios-tip" id="ios-tip" hidden></p>
+  <footer class="foot"><a href="../">More free games</a> · Made with AI by <a href="https://www.instagram.com/mrkmediastudio/" target="_blank" rel="noopener">MRK Media Studio</a><br><small>© 2026 MKR Invest LLC (MRK Media Studio). All rights reserved. Gogosik™ is a trademark of MKR Invest LLC.</small></footer>
+</div>
+
+<script>
+(function(){
+/* ================= text ================= */
+const T={
+en:{title:'Gogosik’s <span>Math Quest</span>',sub:'Practice with hints. I never give the answer.',
+ homeHi:'Pick a topic! If you get stuck, I’ll help step by step — but you find the answer yourself.',
+ pH:'For parents',pList:['Every problem is new each time, so it’s real practice, not memorising.','Stuck? 1st help: a hint. 2nd: a solved example with different numbers. 3rd: small steps your child solves.','The game never shows the answer. A star counts only when solved with no help.','Ages about 8–11. Works offline; nothing leaves your device.'],
+ back:'Topics',hintBtn:'💡 I need a hint',skip:'Skip for now',next:'Next problem →',finish:'Finish',check:'Check',del:'Delete',
+ right:['Yes! That’s it!','Correct! You figured it out!','Great thinking!','You got it!'],
+ rightHelp:'Correct! You did it with a little help. Next time try without it!',
+ wrong:'Not quite. Try again — or tap the hint.',wrong2:'Still not it. Look at the help below.',
+ h1:'Hint',ex:'Look at a similar one',steps:'Small steps',stepsSay:'Let’s do it in small steps. Fill each box, then answer the big question.',
+ skipSay:'No problem. We’ll come back to this one at the end.',back2:'This one came back. You can do it now!',
+ winT:'Topic complete!',winTxt:(s,n)=>`${s} of ${n} solved with no help.`,again:'Play again',home:'All topics',
+ stepOk:'Good step!',stepBad:'Check that step again.',nowMain:'Great steps! Now answer the big question.',
+ L:{pow:['Powers','2³ = 2 × 2 × 2'],prime:['Prime factors','Break a number into primes'],gcf:['Greatest common factor','Biggest number that divides both'],
+    ops:['Order of operations','× and ÷ before + and −'],frac:['Compare fractions','<, = or >'],ang:['Missing angle','Lines and triangles']},
+ q:{pow:'What is the value?',prime:'Tap primes that divide the number until you reach 1.',gcf:'Find the greatest common factor.',ops:'What is the value?',frac:'Which sign goes in the box?',angLine:'The two angles make a straight line. Find x.',angTri:'Find the missing angle x in the triangle.'},
+ hint:{pow:(b,e)=>`${b} to the power ${e} means: multiply ${b} by itself, ${e} times. It is not ${b} × ${e}.`,
+   prime:'Try the small primes first: is the number even? Then 2 works. Do its digits add up to a multiple of 3? Then 3 works. Ends in 0 or 5? Then 5.',
+   gcf:'The GCF is the biggest number that divides BOTH numbers with no remainder. Look for primes the two numbers share.',
+   ops:'First do every × and ÷ from left to right. Only then do + and − from left to right. Brackets come first of all.',
+   fracSameD:'The bottoms are the same, so the pieces are the same size. Compare the tops.',
+   fracSameN:'The tops are the same. A bigger bottom means smaller pieces.',
+   fracDiff:'Make the bottoms the same first. Multiply top and bottom by the same number.',
+   angLine:'Angles on a straight line add up to 180°.',angTri:'The three angles of a triangle add up to 180°.'},
+ exSay:'Here is the same kind of problem with different numbers, solved:',
+ primeWrong:p=>`${p} does not divide it evenly. Try another prime.`,primeGood:'Yes, that divides! Keep going.',
+ gcfStep:(a,b)=>`Smallest prime that divides both ${a} and ${b}?`,gcfNone:(a,b)=>`Now ${a} and ${b} share no prime. Multiply the primes you found:`,
+ fracStep:(n,d,L)=>`${n}/${d} = ?/${L}`,angStep1:(a,b)=>`${a} + ${b} = ?`,angStep2:s=>`180 − ${s} = ?`,lineStep:a=>`180 − ${a} = ?`},
+ru:{title:'Математика <span>Гогосика</span>',sub:'Тренировка с подсказками. Ответ я никогда не говорю.',
+ homeHi:'Выбери тему! Если застрянешь, помогу шаг за шагом — но ответ найдёшь сам.',
+ pH:'Для родителей',pList:['Задачи каждый раз новые — это тренировка, а не заучивание.','Застрял? 1-я помощь: подсказка. 2-я: решённый пример с другими числами. 3-я: маленькие шаги, которые решает ребёнок.','Игра никогда не показывает ответ. Звезда — только за решение без помощи.','Возраст примерно 8–11 лет. Работает без интернета, ничего не отправляется.'],
+ back:'Темы',hintBtn:'💡 Нужна подсказка',skip:'Пропустить пока',next:'Следующая →',finish:'Готово',check:'Проверить',del:'Стереть',
+ right:['Да! Верно!','Правильно! Ты сам догадался!','Отличная мысль!','Получилось!'],
+ rightHelp:'Верно! С небольшой помощью. В следующий раз попробуй без неё!',
+ wrong:'Пока нет. Попробуй ещё — или нажми подсказку.',wrong2:'Всё ещё не то. Посмотри помощь ниже.',
+ h1:'Подсказка',ex:'Посмотри на похожую',steps:'Маленькие шаги',stepsSay:'Давай по маленьким шагам. Заполни каждое окошко, а потом ответь на главный вопрос.',
+ skipSay:'Ничего страшного. Вернёмся к ней в конце.',back2:'Эта задача вернулась. Теперь ты справишься!',
+ winT:'Тема пройдена!',winTxt:(s,n)=>`${s} из ${n} решено без помощи.`,again:'Ещё раз',home:'Все темы',
+ stepOk:'Хороший шаг!',stepBad:'Проверь этот шаг ещё раз.',nowMain:'Отличные шаги! Теперь ответь на главный вопрос.',
+ L:{pow:['Степени','2³ = 2 × 2 × 2'],prime:['Простые множители','Разложи число на простые'],gcf:['НОД','Наибольший общий делитель'],
+    ops:['Порядок действий','× и ÷ раньше + и −'],frac:['Сравни дроби','<, = или >'],ang:['Найди угол','Прямая и треугольник']},
+ q:{pow:'Чему равно?',prime:'Нажимай на простые числа, которые делят число, пока не получится 1.',gcf:'Найди наибольший общий делитель.',ops:'Чему равно?',frac:'Какой знак поставить?',angLine:'Два угла вместе образуют прямую. Найди x.',angTri:'Найди неизвестный угол x в треугольнике.'},
+ hint:{pow:(b,e)=>`${b} в степени ${e} — это ${b}, умноженное само на себя ${e} раз. Это не ${b} × ${e}.`,
+   prime:'Начни с маленьких простых: число чётное? Тогда подходит 2. Сумма цифр делится на 3? Тогда 3. Оканчивается на 0 или 5? Тогда 5.',
+   gcf:'НОД — самое большое число, на которое делятся ОБА числа без остатка. Ищи простые множители, общие для обоих.',
+   ops:'Сначала все × и ÷ слева направо. Потом + и − слева направо. Скобки — самыми первыми.',
+   fracSameD:'Знаменатели одинаковые — значит, части одного размера. Сравни числители.',
+   fracSameN:'Числители одинаковые. Чем больше знаменатель, тем меньше части.',
+   fracDiff:'Сначала сделай знаменатели одинаковыми. Умножь числитель и знаменатель на одно число.',
+   angLine:'Углы на прямой в сумме дают 180°.',angTri:'Сумма трёх углов треугольника — 180°.'},
+ exSay:'Вот такая же задача с другими числами, уже решённая:',
+ primeWrong:p=>`${p} не делит его нацело. Попробуй другое простое.`,primeGood:'Да, делится! Продолжай.',
+ gcfStep:(a,b)=>`Самое маленькое простое, которое делит и ${a}, и ${b}?`,gcfNone:(a,b)=>`У ${a} и ${b} больше нет общих простых. Перемножь найденные:`,
+ fracStep:(n,d,L)=>`${n}/${d} = ?/${L}`,angStep1:(a,b)=>`${a} + ${b} = ?`,angStep2:s=>`180 − ${s} = ?`,lineStep:a=>`180 − ${a} = ?`}
+};
+
+/* ================= helpers ================= */
+const $=id=>document.getElementById(id);
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const fr=(n,d)=>`<span class="fr"><span>${n}</span><span>${d}</span></span>`;
+const PER=6;
+
+/* ================= problem generators =================
+   Each returns {kind, answer, ...render data}. steps(): list of {q, a} sub-questions (numbers only), never containing the final answer. */
+const GEN={
+ pow(){const b=rnd(2,6),e=b<=3?rnd(2,5):rnd(2,3);return {kind:'num',b,e,answer:b**e,
+   expr:`${b}<sup>${e}</sup>`,
+   steps(){const s=[];let v=b;for(let i=2;i<=e;i++){if(i===e)break;s.push({q:`${v} × ${b} = ?`,a:v*b});v*=b}return s},
+   solved(){let v=b,parts=[`${b}`];for(let i=2;i<=e;i++){v*=b;parts.push(`${b}`)}return `${b}<sup>${e}</sup> = ${parts.join(' × ')} = <b>${b**e}</b>`}}},
+ prime(){let n,f;do{f=[];const k=rnd(3,4);for(let i=0;i<k;i++)f.push(pick([2,2,2,3,3,5,7]));n=f.reduce((x,y)=>x*y,1)}while(n>240||n<12);
+   f.sort((x,y)=>x-y);return {kind:'prime',n,factors:f,answer:f.join(' × '),
+   solved(){let v=n,lines=[];for(const p of f){lines.push(`${v} ÷ ${p} = ${v/p}`);v/=p}return lines.join('<br>')+`<br><b>${n} = ${f.join(' × ')}</b>`}}},
+ gcf(){let g,m,k;do{g=rnd(2,12);m=rnd(2,9);k=rnd(2,9)}while(m===k||gcd(m,k)!==1||g*m>120||g*k>120);
+   const a=g*m,b=g*k;return {kind:'num',a,b,answer:g,expr:`GCF(${a}, ${b})`,
+   steps(t){const s=[];let x=a,y=b;while(gcd(x,y)>1){let p=2;while(x%p||y%p)p++;s.push({q:t.gcfStep(x,y),a:p});s.push({q:`${x} ÷ ${p} = ?`,a:x/p});s.push({q:`${y} ÷ ${p} = ?`,a:y/p});x/=p;y/=p}
+     s.final=t.gcfNone(x,y);return s},
+   solved(t){let x=a,y=b,ps=[],lines=[];while(gcd(x,y)>1){let p=2;while(x%p||y%p)p++;ps.push(p);lines.push(`${x}, ${y} → ÷${p} → ${x/p}, ${y/p}`);x/=p;y/=p}
+     return lines.join('<br>')+(ps.length>1?`<br>GCF = ${ps.join(' × ')} = <b>${g}</b>`:`<br>GCF = <b>${g}</b>`)}}},
+ ops(){const tpl=pick(['a+b*c','a*b-c','a-b*c+d','a*b+c*d','(a+b)*c','a+b/c','a*b-c/d']);
+   let v,expr,steps,ok=false,guard=0;
+   while(!ok&&guard++<200){
+     const a=rnd(2,12),b=rnd(2,9),c=rnd(2,9),d=rnd(2,6);
+     if(tpl==='a+b*c'){v=a+b*c;expr=`${a} + ${b} × ${c}`;steps=[{q:`${b} × ${c} = ?`,a:b*c},{q:`${a} + ${b*c} = ?`,a:v}];ok=true}
+     if(tpl==='a*b-c'){v=a*b-c;expr=`${a} × ${b} − ${c}`;steps=[{q:`${a} × ${b} = ?`,a:a*b}];ok=v>0}
+     if(tpl==='a-b*c+d'){const A=a+b*c;v=A-b*c+d;expr=`${A} − ${b} × ${c} + ${d}`;steps=[{q:`${b} × ${c} = ?`,a:b*c},{q:`${A} − ${b*c} = ?`,a:A-b*c}];ok=true}
+     if(tpl==='a*b+c*d'){v=a*b+c*d;expr=`${a} × ${b} + ${c} × ${d}`;steps=[{q:`${a} × ${b} = ?`,a:a*b},{q:`${c} × ${d} = ?`,a:c*d}];ok=true}
+     if(tpl==='(a+b)*c'){v=(a+b)*c;expr=`(${a} + ${b}) × ${c}`;steps=[{q:`${a} + ${b} = ?`,a:a+b}];ok=true}
+     if(tpl==='a+b/c'){const B=b*c;v=a+b;expr=`${a} + ${B} ÷ ${c}`;steps=[{q:`${B} ÷ ${c} = ?`,a:b}];ok=true}
+     if(tpl==='a*b-c/d'){const C=c*d;v=a*b-c;expr=`${a} × ${b} − ${C} ÷ ${d}`;steps=[{q:`${a} × ${b} = ?`,a:a*b},{q:`${C} ÷ ${d} = ?`,a:c}];ok=v>0}
+   }
+   return {kind:'num',answer:v,expr,steps(){return steps.filter(s=>s.a!==v)},solved(){return `${expr}<br>${steps.map(s=>s.q.replace('?',s.a)).join('<br>')}<br>= <b>${v}</b>`}}},
+ frac(){const type=pick(['d','n','x','x','e']);let n1,d1,n2,d2;
+   if(type==='d'){d1=d2=rnd(5,12);do{n1=rnd(1,d1-1);n2=rnd(1,d2-1)}while(n1===n2)}
+   else if(type==='n'){n1=n2=rnd(1,5);do{d1=rnd(n1+1,12);d2=rnd(n1+1,12)}while(d1===d2)}
+   else if(type==='e'){d1=rnd(2,6);n1=rnd(1,d1-1);const m=rnd(2,3);d2=d1*m;n2=n1*m;if(Math.random()<.5)[n1,d1,n2,d2]=[n2,d2,n1,d1]}
+   else{d1=rnd(2,6);const m=rnd(2,3);d2=d1*m;n1=rnd(1,d1-1);do{n2=rnd(1,d2-1)}while(n2===n1*m);if(Math.random()<.5)[n1,d1,n2,d2]=[n2,d2,n1,d1]}
+   const L=d1*d2/gcd(d1,d2),v1=n1*L/d1,v2=n2*L/d2,ans=v1<v2?'<':v1>v2?'>':'=';
+   return {kind:'sign',n1,d1,n2,d2,answer:ans,type:d1===d2?'d':n1===n2?'n':'x',
+     expr:`${fr(n1,d1)} <span style="display:inline-block;min-width:1.2em;border:3px dashed currentColor;border-radius:10px;padding:0 .2em" id="cmpbox">?</span> ${fr(n2,d2)}`,
+     steps(t){if(d1===d2||n1===n2)return [];const s=[];if(d1!==L)s.push({q:t.fracStep(n1,d1,L),a:v1});if(d2!==L)s.push({q:t.fracStep(n2,d2,L),a:v2});return s},
+     solved(L){return d1===d2?`${L.hint.fracSameD}<br><b>${fr(n1,d1)} ${ans} ${fr(n2,d2)}</b>`:
+       n1===n2?`${L.hint.fracSameN}<br><b>${fr(n1,d1)} ${ans} ${fr(n2,d2)}</b>`:
+       `${fr(n1,d1)} = ${fr(v1,L)}, ${fr(n2,d2)} = ${fr(v2,L)} → <b>${fr(n1,d1)} ${ans} ${fr(n2,d2)}</b>`}}},
+ ang(){if(Math.random()<.45){const a=rnd(25,155);return {kind:'num',mode:'line',a,answer:180-a,
+     steps(t){return []},lineQ:true,solved(){return `${a}° + x = 180° → x = 180° − ${a}° = <b>${180-a}°</b>`}}}
+   let a,b;do{a=rnd(25,100);b=rnd(25,100)}while(a+b>150);return {kind:'num',mode:'tri',a,b,answer:180-a-b,
+     steps(t){return [{q:t.angStep1(a,b),a:a+b}]},solved(){return `${a}° + ${b}° = ${a+b}°<br>180° − ${a+b}° = <b>${180-a-b}°</b>`}}}
+};
+const TOPICS=['pow','prime','gcf','ops','frac','ang'];
+const ICO={pow:'x²',prime:'2·3',gcf:'÷',ops:'×+',frac:'½',ang:'∠'};
+
+/* angle drawings */
+function angSvg(p,unknownLabel){
+  if(p.mode==='line'){const a=p.a*Math.PI/180,cx=150,cy=120,R=110,x=cx+R*Math.cos(Math.PI-a),y=cy-R*Math.sin(Math.PI-a);
+    return `<svg viewBox="0 0 300 150" width="300" height="150" role="img" aria-label="Straight line with two angles">
+      <line x1="20" y1="${cy}" x2="280" y2="${cy}" stroke="#F4EEDC" stroke-width="4" stroke-linecap="round"/>
+      <line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="#F4EEDC" stroke-width="4" stroke-linecap="round"/>
+      <path d="M ${cx-30} ${cy} A 30 30 0 0 1 ${(cx+30*Math.cos(Math.PI-a)).toFixed(1)} ${(cy-30*Math.sin(Math.PI-a)).toFixed(1)}" fill="none" stroke="#FFD86B" stroke-width="3"/>
+      <path d="M ${(cx+40*Math.cos(Math.PI-a)).toFixed(1)} ${(cy-40*Math.sin(Math.PI-a)).toFixed(1)} A 40 40 0 0 1 ${cx+40} ${cy}" fill="none" stroke="#7BE09A" stroke-width="3"/>
+      <text x="${(cx+55*Math.cos(Math.PI-a/2)).toFixed(1)}" y="${(cy-55*Math.sin(Math.PI-a/2)+6).toFixed(1)}" fill="#FFD86B" font-size="20" font-weight="800" text-anchor="middle" font-family="Rubik,sans-serif">${p.a}°</text>
+      <text x="${(cx+62*Math.cos((Math.PI-a)/2)).toFixed(1)}" y="${(cy-62*Math.sin((Math.PI-a)/2)+6).toFixed(1)}" fill="#7BE09A" font-size="22" font-weight="800" text-anchor="middle" font-family="Rubik,sans-serif">${unknownLabel}</text></svg>`}
+  // triangle: base from A(40,160) to B(260,160); angle at A = a, at B = b
+  const A=[40,170],B=[260,170],ta=Math.tan(p.a*Math.PI/180),tb=Math.tan(p.b*Math.PI/180);
+  const X=(B[0]*ta+A[0]*tb)/(ta+tb),Yh=(X-A[0])*ta;let C=[X,A[1]-Yh];
+  const sc=Math.min(1,150/Math.max(Yh,1));C=[X,A[1]-Yh*sc];const A2=[A[0],A[1]],B2=[B[0],B[1]];
+  const lab=(P,txt,col,dx,dy)=>`<text x="${(P[0]+dx).toFixed(1)}" y="${(P[1]+dy).toFixed(1)}" fill="${col}" font-size="20" font-weight="800" text-anchor="middle" font-family="Rubik,sans-serif">${txt}</text>`;
+  return `<svg viewBox="0 0 300 200" width="300" height="200" role="img" aria-label="Triangle with two known angles">
+    <polygon points="${A2} ${B2} ${C[0].toFixed(1)},${C[1].toFixed(1)}" fill="rgba(255,255,255,.06)" stroke="#F4EEDC" stroke-width="4" stroke-linejoin="round"/>
+    ${lab(A2,p.a+'°','#FFD86B',34,-10)}${lab(B2,p.b+'°','#FFD86B',-34,-10)}${lab(C,unknownLabel,'#7BE09A',0,30)}</svg>`+(sc<1?`<div style="font-size:.8rem;color:#A9C2BB">(not to scale)</div>`:'');
+}
+
+/* ================= state ================= */
+let lang=(()=>{try{const s=localStorage.getItem('gogosik-lang');if(s)return s}catch(e){}return (navigator.language||'en').toLowerCase().startsWith('ru')?'ru':'en'})();
+let topic=null,queue=[],results=[],cur=null,tries=0,helpLevel=0,solved=false,typed='',steps=[],stepIdx=-1,usedHelp=false,curIdx=0,primeState=null;
+let best=store.get('gmq-best',{});
+const t=()=>T[lang];
+function say(text,mood,cls){$('bubble').textContent=text;$('bubble').className='bubble'+(cls?' '+cls:'');$('dragon').className='dragon '+(mood||'idle')}
+function show(id){['home','play','win'].forEach(s=>$(s).hidden=s!==id)}
+
+/* ================= home ================= */
+function renderHome(){
+  $('levels').innerHTML=TOPICS.map(k=>{const [n,d]=t().L[k],b=best[k]||0;
+    return `<button type="button" class="lvl" data-topic="${k}"><span class="ico" aria-hidden="true">${ICO[k]}</span><b>${n}</b><small>${d}</small><span class="st" aria-label="${b} of ${PER}">${'<i>★</i>'.repeat(Math.min(b,PER))}${'★'.repeat(PER-Math.min(b,PER))}</span></button>`}).join('');
+  $('p-h').textContent=t().pH;$('p-list').innerHTML=t().pList.map(x=>`<li>${x}</li>`).join('');
+}
+$('levels').addEventListener('click',e=>{const b=e.target.closest('[data-topic]');if(b)startTopic(b.dataset.topic)});
+
+/* ================= play ================= */
+function startTopic(k){topic=k;queue=[];for(let i=0;i<PER;i++)queue.push({p:GEN[k](),i,back:false});results=Array(PER).fill(null);curIdx=0;show('play');nextProblem()}
+function nextProblem(){
+  if(!queue.length){finishTopic();return}
+  const item=queue.shift();cur=item;tries=0;helpLevel=0;solved=false;typed='';steps=[];stepIdx=-1;usedHelp=false;primeState=null;
+  $('help').innerHTML='';$('next-btn').hidden=true;$('skip-btn').hidden=true;$('hint-btn').hidden=false;
+  render();
+  if(item.back)say(t().back2,'idle');else say(t().q[qKey()],'idle');
+}
+function qKey(){const p=cur.p;return topic==='ang'?(p.mode==='line'?'angLine':'angTri'):topic}
+function render(){
+  const p=cur.p,L=t();$('ptitle').innerHTML=`<small>${L.L[topic][0]}</small>${L.q[qKey()]}`;
+  $('dots').innerHTML=results.map((r,i)=>`<i class="${r||''}${i===cur.i&&!solved?' cur':''}"></i>`).join('');
+  $('hint-btn').textContent=L.hintBtn;$('skip-btn').textContent=L.skip;$('next-btn').textContent=queue.length?L.next:L.finish;
+  let html='';
+  if(topic==='ang')html+=`<div class="vis">${angSvg(p,'x')}</div>`;
+  else if(topic==='prime')html+=`<div class="expr">${p.n}</div><div class="tree" id="tree"></div>`;
+  else html+=`<div class="expr">${p.expr}</div>`;
+  if(p.kind==='num')html+=`<div class="ans${solved?' good':''}" id="mainAns">${topic==='ang'?'<span class="pre">x =</span>':''}<span class="val">${solved?p.answer:typed}</span>${topic==='ang'?'<span class="pre">°</span>':''}</div>`;
+  $('board').innerHTML=html;
+  if(topic==='prime')drawTree();
+  if(solved&&p.kind==='sign'){const cb=document.getElementById('cmpbox');if(cb){cb.textContent=p.answer;cb.style.borderStyle='solid';cb.style.color='#7BE09A'}}
+  renderInput();
+}
+function renderInput(){
+  const p=cur.p,L=t();let h='';
+  if(p.kind==='num'){h=`<div class="pad" id="pad">${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" class="btn" data-k="${n}">${n}</button>`).join('')}<button type="button" class="btn" data-k="del" aria-label="${L.del}">⌫</button><button type="button" class="btn" data-k="0">0</button><button type="button" class="btn primary" data-k="ok">${L.check}</button></div>`}
+  else if(p.kind==='sign'){h=`<div class="signs" id="signs">${['<','=','>'].map(s=>`<button type="button" class="btn" data-s="${s}">${s}</button>`).join('')}</div>`}
+  else if(p.kind==='prime'){h=`<div class="primes" id="primes">${[2,3,5,7,11].map(n=>`<button type="button" class="btn" data-p="${n}">${n}</button>`).join('')}</div>`}
+  $('input').innerHTML=solved?'':h;
+}
+function drawTree(){const p=cur.p,st=primeState||(primeState={v:p.n,got:[]});
+  $('tree').innerHTML=st.got.map(x=>`<span class="p">${x}</span>`).join('<span>×</span>')+(st.v>1?(st.got.length?'<span>×</span>':'')+`<span class="rest">${st.v}</span>`:'')}
+
+/* active input target: step box or main answer */
+function activeStep(){return stepIdx>=0&&stepIdx<steps.length?steps[stepIdx]:null}
+function updateDisplays(){
+  const st=activeStep();
+  document.querySelectorAll('.step.sb').forEach((el,i)=>{const s=steps[i];el.classList.toggle('done',!!s.done);el.querySelector('.ans').classList.toggle('act',i===stepIdx);el.querySelector('.val').textContent=s.done?s.a:(i===stepIdx?typed:'')});
+  const m=$('mainAns');if(m){m.classList.toggle('act',!st&&helpLevel>=3&&!solved);if(!st)m.querySelector('.val').textContent=solved?cur.p.answer:typed}
+}
+$('input').addEventListener('click',e=>{
+  if(solved)return;const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.k!==undefined){const k=b.dataset.k;
+    if(k==='del'){typed=typed.slice(0,-1)}else if(k==='ok'){submitNum();return}else if(typed.length<5){typed=(typed==='0'?'':typed)+k}
+    updateDisplays();return}
+  if(b.dataset.s){submitSign(b.dataset.s,b);return}
+  if(b.dataset.p){submitPrime(+b.dataset.p,b);return}
+});
+document.addEventListener('keydown',e=>{if($('play').hidden||solved||!cur)return;const p=cur.p;
+  if(p.kind==='num'||activeStep()){if(/^[0-9]$/.test(e.key)){if(typed.length<5)typed=(typed==='0'?'':typed)+e.key;updateDisplays()}else if(e.key==='Backspace'){typed=typed.slice(0,-1);updateDisplays()}else if(e.key==='Enter'){e.preventDefault();submitNum()}}
+  if(p.kind==='sign'&&['<','=','>'].includes(e.key))submitSign(e.key,document.querySelector(`[data-s="${e.key}"]`));});
+
+function submitNum(){
+  if(!typed)return;const v=+typed,st=activeStep();
+  if(st){ // answering a small step
+    if(v===st.a){st.done=true;typed='';stepIdx++;say(t().stepOk,'happy');if(stepIdx>=steps.length){stepIdx=-1;say(steps.final||t().nowMain,'think')}}
+    else{typed='';say(t().stepBad,'oops','oops');shake()}
+    updateDisplays();return}
+  if(cur.p.kind!=='num'){typed='';updateDisplays();return}
+  if(v===cur.p.answer){win();return}
+  typed='';updateDisplays();wrong();
+}
+function submitSign(s,btn){if(s===cur.p.answer){btn.classList.add('right');const cb=document.getElementById('cmpbox');if(cb)cb.textContent=s;win();return}btn.classList.add('bad');wrong()}
+function submitPrime(n,btn){const st=primeState;
+  if(st.v%n===0){st.got.push(n);st.v/=n;drawTree();if(st.v===1){win();return}say(t().primeGood,'happy')}
+  else{say(t().primeWrong(n),'oops','oops');shake();tries++;if(tries>=1&&helpLevel<tries)giveHelp(true)}}
+function shake(){const b=$('board');b.classList.remove('shake');void b.offsetWidth;b.classList.add('shake')}
+function wrong(){tries++;shake();say(tries>=2?t().wrong2:t().wrong,'oops','oops');if(helpLevel<tries)giveHelp(true)}
+function win(){
+  solved=true;const first=tries===0&&!usedHelp;results[cur.i]=first?'ok':'ok2';
+  say(first?pick(t().right):t().rightHelp,'happy','win');
+  $('hint-btn').hidden=true;$('skip-btn').hidden=true;$('next-btn').hidden=false;
+  render();$('next-btn').focus({preventScroll:true});
+}
+$('next-btn').addEventListener('click',nextProblem);
+$('hint-btn').addEventListener('click',()=>{if(!solved)giveHelp(false)});
+$('skip-btn').addEventListener('click',()=>{results[cur.i]='skip';cur.back=true;queue.push(cur);say(t().skipSay,'idle');setTimeout(nextProblem,600)});
+$('back').addEventListener('click',()=>{show('home');renderHome();say(t().homeHi,'idle')});
+
+/* help ladder: 1 hint · 2 solved example with other numbers · 3 small steps (or a second example if no steps) */
+function hintText(){const p=cur.p,H=t().hint;
+  if(topic==='pow')return H.pow(p.b,p.e);if(topic==='frac')return p.type==='d'?H.fracSameD:p.type==='n'?H.fracSameN:H.fracDiff;
+  if(topic==='ang')return p.mode==='line'?H.angLine:H.angTri;return H[topic]}
+function giveHelp(auto){
+  if(helpLevel>=3){return}
+  helpLevel++;usedHelp=true;const L=t(),box=$('help');
+  if(helpLevel===1){box.insertAdjacentHTML('beforeend',`<div class="hcard"><h3>${L.h1}</h3>${hintText()}</div>`);if(!auto)say(hintText(),'think')}
+  else if(helpLevel===2){let ex;do{ex=GEN[topic]()}while(ex.answer===cur.p.answer);
+    box.insertAdjacentHTML('beforeend',`<div class="hcard ex"><h3>${L.ex}</h3>${topic==='ang'?`<div class="vis" style="background:var(--felt);border-radius:12px;padding:6px">${angSvg(ex,ex.answer+'°')}</div>`:''}${ex.solved(L)}</div>`);
+    say(L.exSay,'think')}
+  else{const p=cur.p;steps=(p.steps?p.steps(L):[]).map(s=>({...s,done:false}));if(p.steps){const f=p.steps(L).final;if(f)steps.final=f}
+    if(steps.length){stepIdx=0;typed='';
+      box.insertAdjacentHTML('beforeend',`<div class="hcard"><h3>${L.steps}</h3>${steps.map(s=>`<div class="step sb"><span class="q">${s.q}</span><span class="ans"><span class="val"></span></span></div>`).join('')}${steps.final?`<div class="step"><span class="q">${steps.final}</span></div>`:''}</div>`);
+      say(L.stepsSay,'think');if(p.kind!=='num'){stepIdx=-1}
+      if(p.kind==='sign'){ // fraction steps need the pad: add a mini pad
+        stepIdx=0;$('input').insertAdjacentHTML('afterbegin',`<div class="pad" id="pad" style="margin-bottom:10px">${[1,2,3,4,5,6,7,8,9].map(n=>`<button type="button" class="btn" data-k="${n}">${n}</button>`).join('')}<button type="button" class="btn" data-k="del">⌫</button><button type="button" class="btn" data-k="0">0</button><button type="button" class="btn primary" data-k="ok">${L.check}</button></div>`)}
+      updateDisplays()}
+    else{let ex;do{ex=GEN[topic]()}while(ex.answer===cur.p.answer);box.insertAdjacentHTML('beforeend',`<div class="hcard ex"><h3>${L.ex}</h3>${topic==='ang'?`<div class="vis" style="background:var(--felt);border-radius:12px;padding:6px">${angSvg(ex,ex.answer+'°')}</div>`:''}${ex.solved(L)}</div>`);say(L.exSay,'think')}
+    $('skip-btn').hidden=false}
+}
+
+/* sign topic: submitNum routes step answers; sign buttons still decide the answer */
+function finishTopic(){
+  const firsts=results.filter(r=>r==='ok').length;best[topic]=Math.max(best[topic]||0,firsts);store.set('gmq-best',best);
+  show('win');const L=t();$('w-title').textContent=L.winT;$('w-text').textContent=L.winTxt(firsts,PER);
+  $('w-stars').innerHTML=Array.from({length:PER},(_,i)=>i<firsts?'<i>★</i>':'★').join('');
+  $('w-again').textContent=L.again;$('w-home').textContent=L.home;say(L.winTxt(firsts,PER),'happy','win');
+}
+$('w-again').addEventListener('click',()=>startTopic(topic));
+$('w-home').addEventListener('click',()=>{show('home');renderHome();say(t().homeHi,'idle')});
+
+function applyLang(){const L=t();document.documentElement.lang=lang;$('title').innerHTML=L.title;$('sub').textContent=L.sub;
+  document.querySelectorAll('.lang button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lang===lang)));
+  if(!$('home').hidden){renderHome();say(L.homeHi,'idle')}else if(!$('play').hidden&&cur){render();updateDisplays()}else if(!$('win').hidden)finishTopic()}
+document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>{lang=b.dataset.lang;try{localStorage.setItem('gogosik-lang',lang)}catch(e){}applyLang()}));
+applyLang();show('home');
+window.__gmq={GEN,TOPICS,get cur(){return cur},get steps(){return steps},startTopic};
+})();
+</script>
+<script>
+(function(){
+  const L=()=>document.documentElement.lang==='ru';
+  const btn=document.getElementById('install-btn'),tip=document.getElementById('ios-tip');
+  const label=()=>{btn.textContent=L()?'⬇ Установить':'⬇ Install';tip.textContent=L()?'На iPhone/iPad: нажми «Поделиться» ⬆, затем «На экран Домой».':'On iPhone/iPad: tap Share ⬆, then “Add to Home Screen”.'};
+  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  let deferred=null;label();new MutationObserver(label).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+  if(!standalone){addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;btn.hidden=false});if(ios)btn.hidden=false}
+  btn.addEventListener('click',async()=>{if(deferred){deferred.prompt();await deferred.userChoice.catch(()=>{});deferred=null;btn.hidden=true}else if(ios){tip.hidden=!tip.hidden}});
+  addEventListener('appinstalled',()=>{btn.hidden=true});
+  if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+})();
+</script>
+</body>
+</html>

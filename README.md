@@ -8,6 +8,7 @@ Play: https://mrkmediastudio.github.io/gogosik-games/
 |---|---|
 | Gogosik's Matchsticks | `matchsticks/` |
 | Gogosik's Fifteen | `fifteen/` |
+| Gogosik’s Math Quest | `math/` |
 
 Each game is a standalone installable web app (PWA): its own `index.html`, `manifest.webmanifest`, `sw.js` and `icons/`.
 When you change a game, bump `VERSION` in its `sw.js` so installed copies update.
